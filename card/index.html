@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>오늘만 축구 선수였다면</title>
+<title>나만의 축구카드, 오늘 발매</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
@@ -50,15 +50,6 @@ main{display:grid;grid-template-columns:minmax(280px,400px) 1fr;gap:clamp(24px,5
 .hint{margin:12px 0 0;font-size:14px;color:var(--muted);text-align:center}
 .actions{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:18px}
 .status{margin:0;min-height:1.5em;font-size:14px;color:var(--muted);text-align:center}
-.roster-head{display:flex;align-items:center;justify-content:space-between;margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
-.roster-head h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
-.roster{display:flex;gap:10px;overflow-x:auto;padding:12px 2px 6px}
-.item,.add{flex:0 0 auto;width:76px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer}
-.item{background:none;border:2px solid transparent;border-radius:12px;padding:3px;text-align:center}
-.item img{display:block;width:100%;aspect-ratio:2/3;object-fit:contain;background:var(--line);border-radius:8px}
-.item span{display:block;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item[aria-current="true"]{border-color:var(--accent)}
-.add{height:118px;margin-top:3px;border:2px dashed var(--line);border-radius:10px;background:none;font-weight:600}
 .panel section{padding:24px 0;border-top:1px solid var(--line)}
 .panel section:first-child{border-top:0;padding-top:0}
 .panel h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 14px}
@@ -106,8 +97,8 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
 <body>
 <div class="wrap">
   <header>
-    <h1>오늘만 축구 선수였다면</h1>
-    <p>친구 사진을 올리고 이름과 능력치를 적으면 선수 카드가 됩니다. 친구마다 카드를 따로 만들 수 있습니다.</p>
+    <h1>나만의 축구카드, 오늘 발매</h1>
+    <p>내 사진을 올리고 이름과 능력치를 적으면, 오늘 발매되는 나만의 선수 카드가 완성됩니다.</p>
   </header>
 
   <main>
@@ -123,11 +114,6 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
         <button class="btn primary" id="save" type="button">PNG로 저장</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div>
-      <div class="roster-head">
-        <h2>우리 팀</h2>
-        <button class="link" id="delBtn" type="button" hidden>이 카드 지우기</button>
-      </div>
-      <div class="roster" id="roster"></div>
     </div>
 
     <div class="panel">
@@ -149,7 +135,7 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
       <section>
         <h2>선수 정보</h2>
         <div class="grid2">
-          <label class="f full">이름<input type="text" id="name" maxlength="16" autocomplete="off"></label>
+          <label class="f full">내 이름<input type="text" id="name" maxlength="16" autocomplete="off"></label>
           <label class="f">포지션<select id="pos"></select></label>
           <label class="f">총점<input type="number" id="ovr" min="1" max="199" inputmode="numeric"></label>
           <label class="check full"><input type="checkbox" id="auto">능력치 평균으로 총점 계산</label>
@@ -202,7 +188,7 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
     return {id:++uid,name:name,pos:'ST',ovr:77,autoOvr:true,team:'우리반 FC',number:'10',
       stats:[88,84,79,86,52,74],theme:'pitch',photo:null,zoom:1,ox:0,oy:0,thumb:''};
   }
-  var cards=[makeCard('내 친구')];
+  var cards=[makeCard('')];
   var activeId=cards[0].id;
   function cur(){ for(var i=0;i<cards.length;i++){ if(cards[i].id===activeId) return cards[i]; } return cards[0]; }
   function overall(c){ return c.autoOvr ? Math.round(c.stats.reduce(function(a,b){return a+b;},0)/c.stats.length) : c.ovr; }
@@ -311,12 +297,12 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
       c.shadowColor='transparent'; c.shadowBlur=0; c.shadowOffsetY=0;
     }
 
-    // "오늘만" date stamp
+    // "오늘 발매" date stamp
     c.save(); c.translate(W-110,82); c.rotate(-0.15);
     c.fillStyle=rgba(bot,0.28); rr(c,-76,-35,152,70,14); c.fill();
     c.strokeStyle=t.accent; c.lineWidth=3; rr(c,-76,-35,152,70,14); c.stroke();
     c.fillStyle=t.accent; c.textAlign='center';
-    c.font='30px '+DISPLAY; c.fillText('오늘만',0,5);
+    c.font='26px '+DISPLAY; c.fillText('오늘 발매',0,4);
     c.font='600 15px '+BODY; c.fillText(DATE,0,25);
     c.restore();
 
@@ -378,13 +364,13 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
   // Korean web fonts load in slices; ask for the glyphs on the card, then redraw once they arrive
   function ensureGlyphs(card){
     if(!document.fonts || !document.fonts.load) return;
-    var a=((card.name||'')+'이름오늘만No.'+card.pos+'0123456789');
+    var a=((card.name||'')+'이름오늘 발매No.'+card.pos+'0123456789');
     var b=((card.team||'')+STAT_LABELS.join('')+'사진을 올려 주세요No.0123456789'+DATE);
     var key=a+'|'+b;
     if(key===glyphKey) return;
     glyphKey=key;
     Promise.all([
-      document.fonts.load('40px "Black Han Sans"',a+'오늘만'),
+      document.fonts.load('40px "Black Han Sans"',a+'오늘 발매'),
       document.fonts.load('600 16px "IBM Plex Sans KR"',b),
       document.fonts.load('400 16px "IBM Plex Sans KR"',b)
     ]).then(function(r){ if(r.some(function(x){return x&&x.length;})) render(); }).catch(function(){});
@@ -441,25 +427,7 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
     syncPhoto();
   }
 
-  function renderRoster(){
-    var box=$('roster'); box.textContent='';
-    cards.forEach(function(card){
-      var b=document.createElement('button'); b.type='button'; b.className='item'; b.dataset.id=card.id;
-      b.setAttribute('aria-current',card.id===activeId?'true':'false');
-      var img=document.createElement('img'); img.alt=''; if(card.thumb) img.src=card.thumb;
-      var s=document.createElement('span'); s.textContent=(card.name||'').trim()||'이름';
-      b.appendChild(img); b.appendChild(s);
-      b.addEventListener('click',function(){ activeId=card.id; syncControls(); renderRoster(); render(); });
-      box.appendChild(b);
-    });
-    var add=document.createElement('button'); add.type='button'; add.className='add'; add.textContent='친구 추가';
-    add.addEventListener('click',function(){
-      var nc=makeCard('친구 '+(cards.length+1)); cards.push(nc); activeId=nc.id;
-      syncControls(); renderRoster(); render(); $('name').focus(); $('name').select();
-    });
-    box.appendChild(add);
-    $('delBtn').hidden=cards.length<2;
-  }
+  function renderRoster(){}
 
   function setStatus(msg){ $('status').textContent=msg; }
 
@@ -528,13 +496,6 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
   $('oy').addEventListener('input',function(e){ var c=cur(); c.oy=+e.target.value; $('oyOut').textContent=e.target.value; render(); });
   $('resetPos').addEventListener('click',function(){ var c=cur(); c.zoom=1; c.ox=0; c.oy=0; syncPhoto(); render(); });
 
-  $('delBtn').addEventListener('click',function(){
-    if(cards.length<2) return;
-    var i=-1; for(var j=0;j<cards.length;j++){ if(cards[j].id===activeId) i=j; }
-    var nm=(cards[i].name||'').trim()||'이름';
-    cards.splice(i,1); activeId=cards[Math.max(0,i-1)].id;
-    syncControls(); renderRoster(); render(); setStatus(nm+' 카드를 지웠습니다.');
-  });
 
   // Tilt + foil glare (mouse only) and photo dragging
   var cardEl=$('cardEl'), glare=$('glare'), wrap=$('cardWrap'), dragging=null;
@@ -618,6 +579,6 @@ dialog::backdrop{background:rgba(5,15,8,.6)}
   if(document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ render(); }); }
 })();
 </script>
-<div style="position:fixed;right:10px;bottom:8px;font:11px/1 system-ui,-apple-system,sans-serif;color:rgba(120,130,150,.75);z-index:50;pointer-events:none;letter-spacing:.2px">제작 DYHAN</div>
+<div style="position:fixed;right:10px;bottom:8px;font:11px/1 system-ui,-apple-system,sans-serif;color:rgba(120,130,150,.75);z-index:50;pointer-events:none;letter-spacing:.2px">제작 DOYOOHACK (DYHAN)</div>
 </body>
 </html>

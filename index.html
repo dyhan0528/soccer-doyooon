@@ -27,6 +27,7 @@ a.app{display:flex;gap:16px;align-items:center;padding:20px;margin-bottom:14px;b
 a.app:hover,a.app:focus-visible{border-color:var(--accent);transform:translateY(-2px);outline:none}
 .icon{flex:none;width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-size:28px;background:#0b110d;border:1px solid var(--line)}
 .app h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 2px}
+.app > span:nth-child(2){min-width:0}
 .app p{margin:0;color:var(--muted);font-size:14px}
 .arrow{margin-left:auto;color:var(--accent);font-size:22px}
 footer{margin-top:36px;color:var(--muted);font-size:13px;text-align:center}
@@ -40,7 +41,7 @@ footer strong{color:var(--ink);letter-spacing:.04em}
 
   <a class="app" href="/card">
     <span class="icon" aria-hidden="true">🃏</span>
-    <span><h2>오늘만 축구 선수였다면</h2><p>내 얼굴로 프로급 축구 선수 카드 만들기</p></span>
+    <span><h2>나만의 축구카드, 오늘 발매</h2><p>내 사진으로 나만의 프로 선수 카드 만들기</p></span>
     <span class="arrow" aria-hidden="true">→</span>
   </a>
 
