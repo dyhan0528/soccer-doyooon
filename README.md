@@ -1,4 +1,6 @@
-# soccer-doyooon
+# SOCCER Lab: Cards & Tactics
+
+제작: **DOYOOHACK (DYHAN)** · 저장소 `soccer-doyooon`
 
 축구 앱 두 개를 한 주소로 묶은 정적 사이트 (빌드 없음, Vercel 배포).
 
