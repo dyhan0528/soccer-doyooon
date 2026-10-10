@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘만 축구 선수였다면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2ec; --surface:#ffffff; --ink:#13201a; --muted:#56655c; --line:#d3dccf;
+  --accent:#1f7a3a; --accent-ink:#ffffff; --focus:#1f7a3a; --field:#f8faf6;
+  --display:"Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1511; --surface:#16201a; --ink:#e7efe9; --muted:#9aab9f; --line:#2b3a30;
+    --accent:#4cc36f; --accent-ink:#06220f; --focus:#7ee29a; --field:#111a14; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1511; --surface:#16201a; --ink:#e7efe9; --muted:#9aab9f; --line:#2b3a30;
+  --accent:#4cc36f; --accent-ink:#06220f; --focus:#7ee29a; --field:#111a14; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;word-break:keep-all;overflow-wrap:break-word}
+img{max-width:100%}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,4vw,40px) 64px}
+header h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,6.4vw,64px);line-height:1.08;margin:0 0 10px}
+header p{margin:0;color:var(--muted);max-width:36em}
+main{display:grid;grid-template-columns:minmax(280px,400px) 1fr;gap:clamp(24px,5vw,64px);margin-top:clamp(24px,4vw,40px);align-items:start}
+.stage{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+.card-wrap{perspective:1200px;width:100%;max-width:400px;margin:0 auto}
+.card{position:relative;transform-style:preserve-3d;transition:transform .2s ease-out}
+.card canvas{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 26px rgba(8,30,15,.28))}
+.card canvas.draggable{cursor:grab;touch-action:none}
+.card canvas.draggable:active{cursor:grabbing}
+.glare{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;opacity:0;transition:opacity .3s;
+  background:
+    radial-gradient(circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.85),rgba(255,255,255,0) 45%),
+    linear-gradient(115deg,transparent 15%,rgba(255,120,220,.4) calc(var(--gx,50%) - 12%),rgba(120,220,255,.4) var(--gx,50%),rgba(255,240,140,.4) calc(var(--gx,50%) + 12%),transparent 85%)}
+.card.active .glare{opacity:1}
+.hint{margin:12px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.actions{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:18px}
+.status{margin:0;min-height:1.5em;font-size:14px;color:var(--muted);text-align:center}
+.roster-head{display:flex;align-items:center;justify-content:space-between;margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.roster-head h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
+.roster{display:flex;gap:10px;overflow-x:auto;padding:12px 2px 6px}
+.item,.add{flex:0 0 auto;width:76px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer}
+.item{background:none;border:2px solid transparent;border-radius:12px;padding:3px;text-align:center}
+.item img{display:block;width:100%;aspect-ratio:2/3;object-fit:contain;background:var(--line);border-radius:8px}
+.item span{display:block;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item[aria-current="true"]{border-color:var(--accent)}
+.add{height:118px;margin-top:3px;border:2px dashed var(--line);border-radius:10px;background:none;font-weight:600}
+.panel section{padding:24px 0;border-top:1px solid var(--line)}
+.panel section:first-child{border-top:0;padding-top:0}
+.panel h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.note{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.full{grid-column:1/-1}
+.f{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.check{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink);min-height:32px}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+input[type=text],input[type=number],select{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-height:44px;width:100%}
+input:disabled{opacity:.6}
+.sliders{display:flex;flex-direction:column;gap:4px;margin-top:14px}
+.srow{display:grid;grid-template-columns:4.5em 1fr 3.4em;align-items:center;gap:12px;min-height:40px;font-size:15px}
+.srow output{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:32px;margin:0}
+.btn{font:inherit;font-weight:600;border-radius:999px;padding:10px 20px;min-height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.small{padding:6px 14px;min-height:38px;font-size:14px;align-self:flex-start;margin-top:6px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:14px;min-height:44px;cursor:pointer;padding:0 4px}
+.swatches{display:flex;flex-wrap:wrap;gap:16px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.ring{display:block;padding:3px;border:2px solid transparent;border-radius:12px}
+.chip{display:block;width:52px;height:78px;clip-path:polygon(16% 0,100% 0,100% 84%,84% 100%,0 100%,0 16%)}
+.swatch input:checked + .ring{border-color:var(--ink)}
+.swatch input:focus-visible + .ring{outline:3px solid var(--focus);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.file:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+dialog{border:0;border-radius:16px;padding:20px;background:var(--surface);color:var(--ink);width:min(92vw,420px)}
+dialog img{display:block;width:100%;height:auto}
+dialog p{font-size:14px;color:var(--muted);margin:12px 0}
+dialog::backdrop{background:rgba(5,15,8,.6)}
+[hidden]{display:none !important}
+@media (max-width:820px){
+  main{grid-template-columns:1fr}
+  .stage{position:static}
+  .card-wrap{max-width:320px}
+}
+@media (prefers-reduced-motion: reduce){
+  .card,.glare{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>오늘만 축구 선수였다면</h1>
+    <p>친구 사진을 올리고 이름과 능력치를 적으면 선수 카드가 됩니다. 친구마다 카드를 따로 만들 수 있습니다.</p>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="card-wrap" id="cardWrap">
+        <div class="card" id="cardEl">
+          <canvas id="card" role="img" aria-label="선수 카드 미리보기"></canvas>
+          <div class="glare" id="glare" aria-hidden="true"></div>
+        </div>
+      </div>
+      <p class="hint" id="dragHint" hidden>카드 위 사진을 끌어서 위치를 맞추세요.</p>
+      <div class="actions">
+        <button class="btn primary" id="save" type="button">PNG로 저장</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="roster-head">
+        <h2>우리 팀</h2>
+        <button class="link" id="delBtn" type="button" hidden>이 카드 지우기</button>
+      </div>
+      <div class="roster" id="roster"></div>
+    </div>
+
+    <div class="panel">
+      <section>
+        <h2>사진</h2>
+        <div class="row">
+          <label class="btn primary file"><input type="file" id="file" accept="image/*" class="sr-only">사진 올리기</label>
+          <button class="btn" type="button" id="removePhoto" hidden>사진 빼기</button>
+        </div>
+        <p class="note">배경을 지운 PNG 사진을 올리면 카드 배경 위에 사람만 보입니다.</p>
+        <div class="sliders" id="photoCtl" hidden>
+          <div class="srow"><label for="zoom">확대</label><input type="range" id="zoom" min="1" max="3" step="0.01"><output id="zoomOut" for="zoom"></output></div>
+          <div class="srow"><label for="ox">좌우</label><input type="range" id="ox" min="-400" max="400" step="1"><output id="oxOut" for="ox"></output></div>
+          <div class="srow"><label for="oy">상하</label><input type="range" id="oy" min="-400" max="400" step="1"><output id="oyOut" for="oy"></output></div>
+          <button class="btn small" type="button" id="resetPos">위치 초기화</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>선수 정보</h2>
+        <div class="grid2">
+          <label class="f full">이름<input type="text" id="name" maxlength="16" autocomplete="off"></label>
+          <label class="f">포지션<select id="pos"></select></label>
+          <label class="f">총점<input type="number" id="ovr" min="1" max="199" inputmode="numeric"></label>
+          <label class="check full"><input type="checkbox" id="auto">능력치 평균으로 총점 계산</label>
+          <label class="f">등번호<input type="number" id="number" min="0" max="99" inputmode="numeric"></label>
+          <label class="f">팀 이름<input type="text" id="team" maxlength="18" autocomplete="off"></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>능력치</h2>
+        <div class="sliders" id="stats"></div>
+        <button class="btn small" type="button" id="random">무작위로 채우기</button>
+      </section>
+
+      <section>
+        <h2>카드 색</h2>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="카드 색"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<dialog id="imgDialog">
+  <img id="imgOut" alt="완성된 선수 카드">
+  <p>이미지를 길게 누르거나 마우스 오른쪽 버튼으로 저장하세요.</p>
+  <button class="btn" type="button" id="closeDialog">닫기</button>
+</dialog>
+
+<script>
+(function(){
+  var W=600, H=900, S=2, PH=600;
+  var DISPLAY='"Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  var BODY='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  var THEMES={
+    pitch:{label:'잔디',top:'#2f9150',bottom:'#0a3a1c',ink:'#f6fbee',accent:'#e6f6c4',stripe:0.06},
+    night:{label:'야간경기',top:'#20346a',bottom:'#050917',ink:'#fff6d2',accent:'#ffd447',stripe:0.035},
+    gold:{label:'트로피',top:'#f3da92',bottom:'#94621a',ink:'#2a1904',accent:'#4d3206',stripe:0.05},
+    red:{label:'레드카드',top:'#f0503f',bottom:'#640a0f',ink:'#fff3ee',accent:'#ffe2d8',stripe:0.04}
+  };
+  var STAT_LABELS=['스피드','슈팅','패스','드리블','수비','피지컬'];
+  var POSITIONS=['ST','CF','LW','RW','CAM','CM','CDM','LM','RM','LB','RB','CB','GK'];
+  var $=function(id){return document.getElementById(id);};
+  var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pad=function(n){return String(n).padStart(2,'0');};
+  var now=new Date();
+  var DATE=now.getFullYear()+'.'+pad(now.getMonth()+1)+'.'+pad(now.getDate());
+
+  var uid=0;
+  function makeCard(name){
+    return {id:++uid,name:name,pos:'ST',ovr:77,autoOvr:true,team:'우리반 FC',number:'10',
+      stats:[88,84,79,86,52,74],theme:'pitch',photo:null,zoom:1,ox:0,oy:0,thumb:''};
+  }
+  var cards=[makeCard('내 친구')];
+  var activeId=cards[0].id;
+  function cur(){ for(var i=0;i<cards.length;i++){ if(cards[i].id===activeId) return cards[i]; } return cards[0]; }
+  function overall(c){ return c.autoOvr ? Math.round(c.stats.reduce(function(a,b){return a+b;},0)/c.stats.length) : c.ovr; }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+  var canvas=$('card'); canvas.width=W*S; canvas.height=H*S;
+  var ctx=canvas.getContext('2d');
+  var off=document.createElement('canvas'); off.width=W*S; off.height=PH*S;
+  var octx=off.getContext('2d');
+  var thumbCv=document.createElement('canvas'); thumbCv.width=152; thumbCv.height=228;
+  var tctx=thumbCv.getContext('2d');
+
+  function hexToRgb(h){ var n=parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+  function rgba(a,al){ return 'rgba('+a[0]+','+a[1]+','+a[2]+','+al+')'; }
+
+  // Card outline: chamfered top-left and bottom-right, rounded top-right and bottom-left
+  function shape(c,i){
+    var C=56, R=34, c2=C+i*(Math.SQRT2-1), r2=Math.max(R-i,0);
+    c.beginPath();
+    c.moveTo(c2,i);
+    c.lineTo(W-R,i);
+    c.arc(W-R,R,r2,-Math.PI/2,0);
+    c.lineTo(W-i,H-c2);
+    c.lineTo(W-c2,H-i);
+    c.lineTo(R,H-i);
+    c.arc(R,H-R,r2,Math.PI/2,Math.PI);
+    c.lineTo(i,c2);
+    c.closePath();
+  }
+  function rr(c,x,y,w,h,r){
+    c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.arcTo(x+w,y,x+w,y+r,r);
+    c.lineTo(x+w,y+h-r); c.arcTo(x+w,y+h,x+w-r,y+h,r); c.lineTo(x+r,y+h);
+    c.arcTo(x,y+h,x,y+h-r,r); c.lineTo(x,y+r); c.arcTo(x,y,x+r,y,r); c.closePath();
+  }
+  function fitFont(c,text,start,min,maxW,family,weight){
+    var fs=start; var pre=weight?weight+' ':'';
+    c.font=pre+fs+'px '+family;
+    while(c.measureText(text).width>maxW && fs>min){ fs-=2; c.font=pre+fs+'px '+family; }
+  }
+
+  function draw(card){
+    var t=THEMES[card.theme], ink=hexToRgb(t.ink), top=hexToRgb(t.top), bot=hexToRgb(t.bottom), c=ctx;
+    c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,canvas.width,canvas.height); c.setTransform(S,0,0,S,0,0);
+    c.textBaseline='alphabetic';
+
+    c.save(); shape(c,0); c.clip();
+
+    var g=c.createLinearGradient(0,0,0,H); g.addColorStop(0,t.top); g.addColorStop(1,t.bottom);
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+    c.fillStyle='rgba(255,255,255,'+t.stripe+')';
+    for(var x=0;x<W;x+=100){ c.fillRect(x,0,50,H); }
+
+    c.lineWidth=3; c.strokeStyle=rgba(ink,0.14);
+    c.beginPath(); c.moveTo(0,300); c.lineTo(W,300); c.stroke();
+    c.beginPath(); c.arc(W/2,300,118,0,Math.PI*2); c.stroke();
+    c.strokeStyle=rgba(ink,0.10);
+    c.beginPath(); c.arc(W/2,H+40,140,Math.PI,Math.PI*2); c.stroke();
+
+    // Photo layer with a soft fade at the bottom
+    octx.setTransform(1,0,0,1,0,0); octx.clearRect(0,0,off.width,off.height); octx.setTransform(S,0,0,S,0,0);
+    octx.globalCompositeOperation='source-over';
+    if(card.photo){
+      var p=card.photo, base=Math.max(W/p.width,PH/p.height)*card.zoom, dw=p.width*base, dh=p.height*base;
+      octx.imageSmoothingQuality='high';
+      octx.drawImage(p,(W-dw)/2+card.ox,(PH-dh)/2+card.oy,dw,dh);
+    } else {
+      octx.fillStyle=rgba(ink,0.16);
+      octx.beginPath(); octx.arc(W/2,250,80,0,Math.PI*2); octx.fill();
+      octx.beginPath(); octx.moveTo(W/2-205,PH);
+      octx.bezierCurveTo(W/2-205,430,W/2-125,362,W/2,362);
+      octx.bezierCurveTo(W/2+125,362,W/2+205,430,W/2+205,PH);
+      octx.closePath(); octx.fill();
+    }
+    octx.globalCompositeOperation='destination-in';
+    var m=octx.createLinearGradient(0,0,0,PH); m.addColorStop(0,'#000'); m.addColorStop(0.62,'#000'); m.addColorStop(1,'rgba(0,0,0,0)');
+    octx.fillStyle=m; octx.fillRect(0,0,W,PH);
+    octx.globalCompositeOperation='source-over';
+    c.drawImage(off,0,0,W,PH);
+
+    if(!card.photo){
+      c.textAlign='center'; c.fillStyle=rgba(ink,0.7); c.font='600 22px '+BODY;
+      c.fillText('사진을 올려 주세요',W/2,508);
+    } else {
+      var rg=c.createRadialGradient(112,170,10,112,170,230);
+      rg.addColorStop(0,rgba(top,0.72)); rg.addColorStop(1,rgba(top,0));
+      c.fillStyle=rg; c.fillRect(0,0,360,420);
+    }
+
+    var sh=c.createLinearGradient(0,0,W,H);
+    sh.addColorStop(0.26,'rgba(255,255,255,0)'); sh.addColorStop(0.34,'rgba(255,255,255,0.10)'); sh.addColorStop(0.42,'rgba(255,255,255,0)');
+    c.fillStyle=sh; c.fillRect(0,0,W,H);
+
+    // Rating, position, jersey number
+    var ovr=String(overall(card));
+    c.textAlign='center'; c.fillStyle=t.ink;
+    c.shadowColor=rgba(bot,0.45); c.shadowBlur=10*S; c.shadowOffsetY=2*S;
+    fitFont(c,ovr,128,70,196,DISPLAY);
+    c.fillText(ovr,112,152);
+    c.font='46px '+DISPLAY; c.fillText(card.pos,112,206);
+    c.shadowColor='transparent'; c.shadowBlur=0; c.shadowOffsetY=0;
+    c.fillRect(82,224,60,3);
+    if(card.number!==''){
+      c.shadowColor=rgba(bot,0.45); c.shadowBlur=10*S; c.shadowOffsetY=2*S;
+      fitFont(c,'No.'+card.number,40,24,150,DISPLAY);
+      c.fillText('No.'+card.number,112,282);
+      c.shadowColor='transparent'; c.shadowBlur=0; c.shadowOffsetY=0;
+    }
+
+    // "오늘만" date stamp
+    c.save(); c.translate(W-110,82); c.rotate(-0.15);
+    c.fillStyle=rgba(bot,0.28); rr(c,-76,-35,152,70,14); c.fill();
+    c.strokeStyle=t.accent; c.lineWidth=3; rr(c,-76,-35,152,70,14); c.stroke();
+    c.fillStyle=t.accent; c.textAlign='center';
+    c.font='30px '+DISPLAY; c.fillText('오늘만',0,5);
+    c.font='600 15px '+BODY; c.fillText(DATE,0,25);
+    c.restore();
+
+    // Name
+    var name=(card.name||'').trim()||'이름';
+    c.fillStyle=t.ink; c.textAlign='center';
+    fitFont(c,name,70,28,W-100,DISPLAY);
+    c.shadowColor=rgba(bot,0.35); c.shadowBlur=8*S;
+    c.fillText(name,W/2,668);
+    c.shadowColor='transparent'; c.shadowBlur=0;
+
+    // Center-circle divider
+    c.strokeStyle=rgba(ink,0.45); c.lineWidth=2;
+    c.beginPath(); c.moveTo(70,694); c.lineTo(W/2-20,694); c.moveTo(W/2+20,694); c.lineTo(W-70,694); c.stroke();
+    c.beginPath(); c.arc(W/2,694,12,0,Math.PI*2); c.stroke();
+    c.fillStyle=rgba(ink,0.8); c.beginPath(); c.arc(W/2,694,4,0,Math.PI*2); c.fill();
+
+    // Stats
+    c.strokeStyle=rgba(ink,0.25); c.beginPath(); c.moveTo(W/2,718); c.lineTo(W/2,842); c.stroke();
+    var rows=[744,788,832];
+    for(var k=0;k<6;k++){
+      var start=k<3?90:390, y=rows[k%3];
+      c.fillStyle=t.ink; c.textAlign='right'; c.font='36px '+DISPLAY;
+      c.fillText(String(card.stats[k]),start+48,y);
+      c.textAlign='left'; c.fillStyle=rgba(ink,0.85); c.font='400 22px '+BODY;
+      c.fillText(STAT_LABELS[k],start+62,y);
+    }
+
+    // Team line
+    var parts=[]; if((card.team||'').trim()) parts.push(card.team.trim());
+    if(parts.length){
+      var tl=parts.join('   ');
+      c.textAlign='center'; c.fillStyle=rgba(ink,0.78);
+      fitFont(c,tl,17,11,380,BODY,'600');
+      c.fillText(tl,W/2,876);
+    }
+    c.restore();
+
+    c.lineWidth=3; c.strokeStyle=rgba(bot,0.9); shape(c,1.5); c.stroke();
+    c.globalAlpha=0.8; c.lineWidth=2.5; c.strokeStyle=t.accent; shape(c,11); c.stroke(); c.globalAlpha=1;
+  }
+
+  var raf=0, thumbTimer=0, glyphKey='';
+  function render(){ if(raf) return; raf=requestAnimationFrame(function(){ raf=0; renderNow(); }); }
+  function renderNow(){
+    var card=cur();
+    draw(card);
+    canvas.setAttribute('aria-label',((card.name||'').trim()||'이름')+' 선수 카드, 총점 '+overall(card)+', 포지션 '+card.pos);
+    clearTimeout(thumbTimer);
+    thumbTimer=setTimeout(function(){
+      tctx.clearRect(0,0,thumbCv.width,thumbCv.height);
+      tctx.drawImage(canvas,0,0,thumbCv.width,thumbCv.height);
+      try{ card.thumb=thumbCv.toDataURL('image/png'); }catch(e){ card.thumb=''; }
+      var img=document.querySelector('.item[data-id="'+card.id+'"] img');
+      if(img && card.thumb) img.src=card.thumb;
+    },200);
+    ensureGlyphs(card);
+  }
+  // Korean web fonts load in slices; ask for the glyphs on the card, then redraw once they arrive
+  function ensureGlyphs(card){
+    if(!document.fonts || !document.fonts.load) return;
+    var a=((card.name||'')+'이름오늘만No.'+card.pos+'0123456789');
+    var b=((card.team||'')+STAT_LABELS.join('')+'사진을 올려 주세요No.0123456789'+DATE);
+    var key=a+'|'+b;
+    if(key===glyphKey) return;
+    glyphKey=key;
+    Promise.all([
+      document.fonts.load('40px "Black Han Sans"',a+'오늘만'),
+      document.fonts.load('600 16px "IBM Plex Sans KR"',b),
+      document.fonts.load('400 16px "IBM Plex Sans KR"',b)
+    ]).then(function(r){ if(r.some(function(x){return x&&x.length;})) render(); }).catch(function(){});
+  }
+
+  // Build selects
+  POSITIONS.forEach(function(p){ var o=document.createElement('option'); o.value=p; o.textContent=p; $('pos').appendChild(o); });
+
+  // Build stat sliders
+  STAT_LABELS.forEach(function(lab,k){
+    var row=document.createElement('div'); row.className='srow';
+    var l=document.createElement('label'); l.htmlFor='s'+k; l.textContent=lab;
+    var r=document.createElement('input'); r.type='range'; r.id='s'+k; r.min='1'; r.max='99'; r.step='1';
+    var o=document.createElement('output'); o.id='o'+k; o.htmlFor='s'+k;
+    row.appendChild(l); row.appendChild(r); row.appendChild(o);
+    $('stats').appendChild(row);
+    r.addEventListener('input',function(){
+      var c=cur(); c.stats[k]=+r.value; o.textContent=r.value;
+      if(c.autoOvr) $('ovr').value=overall(c);
+      render();
+    });
+  });
+
+  // Build theme swatches
+  Object.keys(THEMES).forEach(function(key){
+    var t=THEMES[key];
+    var l=document.createElement('label'); l.className='swatch';
+    var inp=document.createElement('input'); inp.type='radio'; inp.name='theme'; inp.value=key; inp.className='sr-only';
+    var ring=document.createElement('span'); ring.className='ring';
+    var chip=document.createElement('span'); chip.className='chip';
+    chip.style.background='linear-gradient('+t.top+','+t.bottom+')';
+    ring.appendChild(chip);
+    var txt=document.createElement('span'); txt.textContent=t.label;
+    l.appendChild(inp); l.appendChild(ring); l.appendChild(txt);
+    $('swatches').appendChild(l);
+    inp.addEventListener('change',function(){ cur().theme=key; render(); renderRoster(); });
+  });
+
+  function syncPhoto(){
+    var c=cur(), has=!!c.photo;
+    $('zoom').value=c.zoom; $('zoomOut').textContent=c.zoom.toFixed(2);
+    $('ox').value=Math.round(c.ox); $('oxOut').textContent=Math.round(c.ox);
+    $('oy').value=Math.round(c.oy); $('oyOut').textContent=Math.round(c.oy);
+    $('photoCtl').hidden=!has; $('removePhoto').hidden=!has; $('dragHint').hidden=!has;
+    canvas.classList.toggle('draggable',has);
+  }
+  function syncControls(){
+    var c=cur();
+    $('name').value=c.name; $('pos').value=c.pos;
+    $('auto').checked=c.autoOvr; $('ovr').value=overall(c); $('ovr').disabled=c.autoOvr;
+    $('team').value=c.team; $('number').value=c.number;
+    c.stats.forEach(function(v,k){ $('s'+k).value=v; $('o'+k).textContent=v; });
+    var r=document.querySelector('input[name="theme"][value="'+c.theme+'"]'); if(r) r.checked=true;
+    syncPhoto();
+  }
+
+  function renderRoster(){
+    var box=$('roster'); box.textContent='';
+    cards.forEach(function(card){
+      var b=document.createElement('button'); b.type='button'; b.className='item'; b.dataset.id=card.id;
+      b.setAttribute('aria-current',card.id===activeId?'true':'false');
+      var img=document.createElement('img'); img.alt=''; if(card.thumb) img.src=card.thumb;
+      var s=document.createElement('span'); s.textContent=(card.name||'').trim()||'이름';
+      b.appendChild(img); b.appendChild(s);
+      b.addEventListener('click',function(){ activeId=card.id; syncControls(); renderRoster(); render(); });
+      box.appendChild(b);
+    });
+    var add=document.createElement('button'); add.type='button'; add.className='add'; add.textContent='친구 추가';
+    add.addEventListener('click',function(){
+      var nc=makeCard('친구 '+(cards.length+1)); cards.push(nc); activeId=nc.id;
+      syncControls(); renderRoster(); render(); $('name').focus(); $('name').select();
+    });
+    box.appendChild(add);
+    $('delBtn').hidden=cards.length<2;
+  }
+
+  function setStatus(msg){ $('status').textContent=msg; }
+
+  // Field listeners
+  $('name').addEventListener('input',function(e){
+    var c=cur(); c.name=e.target.value; render();
+    var s=document.querySelector('.item[data-id="'+c.id+'"] span'); if(s) s.textContent=c.name.trim()||'이름';
+  });
+  $('pos').addEventListener('change',function(e){ cur().pos=e.target.value; render(); });
+  $('team').addEventListener('input',function(e){ cur().team=e.target.value; render(); });
+  $('number').addEventListener('input',function(e){
+    var v=e.target.value.trim(); var n=parseInt(v,10);
+    cur().number = v==='' || isNaN(n) ? '' : String(clamp(n,0,99)); render();
+  });
+  $('ovr').addEventListener('input',function(e){
+    var n=parseInt(e.target.value,10); if(!isNaN(n)){ cur().ovr=clamp(n,1,199); render(); }
+  });
+  $('ovr').addEventListener('change',function(e){ e.target.value=cur().ovr; });
+  $('auto').addEventListener('change',function(e){
+    var c=cur();
+    if(!e.target.checked){ c.ovr=overall(c); }
+    c.autoOvr=e.target.checked;
+    $('ovr').disabled=c.autoOvr; $('ovr').value=overall(c); render();
+  });
+  $('random').addEventListener('click',function(){
+    var c=cur();
+    c.stats=c.stats.map(function(){ return 45+Math.floor(Math.random()*55); });
+    syncControls(); render();
+  });
+
+  // Photo
+  function downscale(src,max){
+    var sw=src.width, sh=src.height, k=Math.min(1,max/Math.max(sw,sh));
+    var cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(sw*k)); cv.height=Math.max(1,Math.round(sh*k));
+    cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);
+    return cv;
+  }
+  function decode(file){
+    if(window.createImageBitmap){
+      return createImageBitmap(file,{imageOrientation:'from-image'}).catch(function(){ return viaDataUrl(file); });
+    }
+    return viaDataUrl(file);
+  }
+  function viaDataUrl(file){
+    return new Promise(function(res,rej){
+      var fr=new FileReader();
+      fr.onload=function(){ var img=new Image(); img.onload=function(){ res(img); }; img.onerror=rej; img.src=fr.result; };
+      fr.onerror=rej; fr.readAsDataURL(file);
+    });
+  }
+  $('file').addEventListener('change',function(e){
+    var f=e.target.files && e.target.files[0]; if(!f) return;
+    var card=cur();
+    decode(f).then(function(img){
+      card.photo=downscale(img,1600); card.zoom=1; card.ox=0; card.oy=0;
+      if(img.close) try{ img.close(); }catch(_){}
+      if(card.id===activeId) syncPhoto();
+      render(); setStatus('');
+    }).catch(function(){
+      setStatus('이 파일은 열 수 없습니다. JPG나 PNG 사진을 골라 주세요.');
+    }).then(function(){ e.target.value=''; });
+  });
+  $('removePhoto').addEventListener('click',function(){ var c=cur(); c.photo=null; syncPhoto(); render(); });
+  $('zoom').addEventListener('input',function(e){ var c=cur(); c.zoom=+e.target.value; $('zoomOut').textContent=c.zoom.toFixed(2); render(); });
+  $('ox').addEventListener('input',function(e){ var c=cur(); c.ox=+e.target.value; $('oxOut').textContent=e.target.value; render(); });
+  $('oy').addEventListener('input',function(e){ var c=cur(); c.oy=+e.target.value; $('oyOut').textContent=e.target.value; render(); });
+  $('resetPos').addEventListener('click',function(){ var c=cur(); c.zoom=1; c.ox=0; c.oy=0; syncPhoto(); render(); });
+
+  $('delBtn').addEventListener('click',function(){
+    if(cards.length<2) return;
+    var i=-1; for(var j=0;j<cards.length;j++){ if(cards[j].id===activeId) i=j; }
+    var nm=(cards[i].name||'').trim()||'이름';
+    cards.splice(i,1); activeId=cards[Math.max(0,i-1)].id;
+    syncControls(); renderRoster(); render(); setStatus(nm+' 카드를 지웠습니다.');
+  });
+
+  // Tilt + foil glare (mouse only) and photo dragging
+  var cardEl=$('cardEl'), glare=$('glare'), wrap=$('cardWrap'), dragging=null;
+  (function(){
+    var pts=[], C=56, R=34, a, th;
+    function P(x,y){ pts.push((x/W*100).toFixed(2)+'% '+(y/H*100).toFixed(2)+'%'); }
+    P(C,0);
+    for(a=0;a<=6;a++){ th=-Math.PI/2+a*(Math.PI/2)/6; P(W-R+R*Math.cos(th),R+R*Math.sin(th)); }
+    P(W,H-C); P(W-C,H);
+    for(a=0;a<=6;a++){ th=Math.PI/2+a*(Math.PI/2)/6; P(R+R*Math.cos(th),H-R+R*Math.sin(th)); }
+    P(0,C);
+    glare.style.clipPath='polygon('+pts.join(',')+')';
+  })();
+  function resetTilt(){ cardEl.style.transform=''; cardEl.classList.remove('active'); }
+  wrap.addEventListener('pointermove',function(e){
+    if(dragging || reduceMotion || e.pointerType!=='mouse') return;
+    var r=wrap.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+    cardEl.style.transform='rotateY('+((px-0.5)*12).toFixed(2)+'deg) rotateX('+((0.5-py)*12).toFixed(2)+'deg)';
+    glare.style.setProperty('--gx',(px*100).toFixed(1)+'%');
+    glare.style.setProperty('--gy',(py*100).toFixed(1)+'%');
+    cardEl.classList.add('active');
+  });
+  wrap.addEventListener('pointerleave',resetTilt);
+
+  canvas.addEventListener('pointerdown',function(e){
+    var c=cur(); if(!c.photo) return;
+    var r=canvas.getBoundingClientRect();
+    if((e.clientY-r.top)/r.height*H>PH+40) return;
+    resetTilt();
+    dragging={x:e.clientX,y:e.clientY,ox:c.ox,oy:c.oy,k:W/r.width};
+    try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove',function(e){
+    if(!dragging) return;
+    var c=cur();
+    c.ox=clamp(dragging.ox+(e.clientX-dragging.x)*dragging.k,-400,400);
+    c.oy=clamp(dragging.oy+(e.clientY-dragging.y)*dragging.k,-400,400);
+    $('ox').value=Math.round(c.ox); $('oxOut').textContent=Math.round(c.ox);
+    $('oy').value=Math.round(c.oy); $('oyOut').textContent=Math.round(c.oy);
+    render();
+  });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(function(t){ canvas.addEventListener(t,function(){ dragging=null; }); });
+
+  // Saving
+  var dl=null;
+  try{
+    if(window.claude && typeof window.claude.use==='function'){
+      window.claude.use('downloads').then(function(ns){ dl=ns; }).catch(function(){ dl=null; });
+    }
+  }catch(_){}
+  function fileName(c){
+    var base=((c.name||'').replace(/[\\\/:*?"<>|]+/g,'').trim().replace(/\s+/g,'_'))||'player';
+    return base+'_선수카드.png';
+  }
+  function openImage(){
+    var d=$('imgDialog');
+    $('imgOut').src=canvas.toDataURL('image/png');
+    if(typeof d.showModal==='function') d.showModal(); else d.setAttribute('open','');
+  }
+  $('closeDialog').addEventListener('click',function(){ var d=$('imgDialog'); if(d.close) d.close(); else d.removeAttribute('open'); });
+  $('save').addEventListener('click',function(){
+    var c=cur(); renderNow();
+    if(!dl){ openImage(); return; }
+    var fname=fileName(c);
+    canvas.toBlob(function(blob){
+      if(!blob){ setStatus('이미지를 만들지 못했습니다. 다시 눌러 주세요.'); return; }
+      dl.save({filename:fname,data:blob}).then(function(){
+        setStatus(fname+' 저장했습니다.');
+      }).catch(function(err){
+        var code=err&&err.code;
+        if(code==='declined') setStatus('저장을 취소했습니다.');
+        else if(code==='rate_limited') setStatus('저장 창이 이미 열려 있습니다. 잠시 뒤 다시 눌러 주세요.');
+        else openImage();
+      });
+    },'image/png');
+  });
+
+  // Start
+  syncControls(); renderRoster(); renderNow();
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ render(); }); }
+})();
+</script>
+<div style="position:fixed;right:10px;bottom:8px;font:11px/1 system-ui,-apple-system,sans-serif;color:rgba(120,130,150,.75);z-index:50;pointer-events:none;letter-spacing:.2px">제작 DYHAN</div>
+</body>
+</html>

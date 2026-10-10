@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>포메이션 메이커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #DCE5E2;
+  --bg-glow: #F3F8F6;
+  --surface: #F7FAF9;
+  --surface-2: #E8EFED;
+  --ink: #0F2328;
+  --muted: #53676A;
+  --line: rgba(15, 35, 40, .14);
+  --accent: #B36A00;
+  --accent-ink: #FFFFFF;
+  --accent-soft: rgba(179, 106, 0, .13);
+  --danger: #B3261E;
+  --pitch-a: #2F7D58;
+  --pitch-b: #2A7351;
+  --chalk: rgba(255, 255, 255, .6);
+  --slot-empty: rgba(255, 255, 255, .10);
+  --slot-dash: rgba(255, 255, 255, .72);
+  --bench-dash: rgba(15, 35, 40, .32);
+  --shadow: 0 12px 32px rgba(15, 35, 40, .18);
+  --ease: cubic-bezier(.3, .7, .2, 1);
+  --font-ui: "IBM Plex Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-num: "Barlow Condensed", "Arial Narrow", "IBM Plex Sans KR", sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1A20; --bg-glow: #17353C; --surface: #11262D; --surface-2: #19333B;
+    --ink: #E6F0EE; --muted: #8DA4A6; --line: rgba(230, 240, 238, .12);
+    --accent: #FFB547; --accent-ink: #1B1200; --accent-soft: rgba(255, 181, 71, .15);
+    --danger: #FF8A7A;
+    --pitch-a: #133F30; --pitch-b: #10372A; --chalk: rgba(214, 255, 236, .30);
+    --slot-empty: rgba(214, 255, 236, .05); --slot-dash: rgba(214, 255, 236, .45);
+    --bench-dash: rgba(230, 240, 238, .28);
+    --shadow: 0 16px 40px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1A20; --bg-glow: #17353C; --surface: #11262D; --surface-2: #19333B;
+  --ink: #E6F0EE; --muted: #8DA4A6; --line: rgba(230, 240, 238, .12);
+  --accent: #FFB547; --accent-ink: #1B1200; --accent-soft: rgba(255, 181, 71, .15);
+  --danger: #FF8A7A;
+  --pitch-a: #133F30; --pitch-b: #10372A; --chalk: rgba(214, 255, 236, .30);
+  --slot-empty: rgba(214, 255, 236, .05); --slot-dash: rgba(214, 255, 236, .45);
+  --bench-dash: rgba(230, 240, 238, .28);
+  --shadow: 0 16px 40px rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(110% 55% at 50% -12%, var(--bg-glow), transparent 62%);
+  background-repeat: no-repeat;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
+button, input { font: inherit; color: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+img { max-width: 100%; }
+
+.app {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 14px 32px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "board" "bench";
+}
+@media (min-width: 900px) {
+  .app {
+    padding: 32px 28px 48px;
+    gap: 22px 36px;
+    grid-template-columns: minmax(0, 600px) minmax(300px, 1fr);
+    grid-template-areas: "board head" "board bench";
+    grid-template-rows: auto 1fr;
+    align-items: start;
+  }
+}
+.head { grid-area: head; display: grid; gap: 14px; min-width: 0; }
+.board { grid-area: board; min-width: 0; }
+.subs { grid-area: bench; min-width: 0; }
+[hidden] { display: none !important; }
+
+/* Team header */
+.team { display: flex; align-items: center; gap: 14px; }
+.team-text { flex: 1; min-width: 0; }
+.team-name {
+  display: block; width: 100%;
+  background: transparent; border: 0; border-bottom: 2px solid transparent;
+  padding: 0 0 2px; margin: 0;
+  font: 700 clamp(24px, 6vw, 32px)/1.2 var(--font-ui);
+  letter-spacing: -.01em;
+}
+.team-name:hover { border-bottom-color: var(--line); }
+.team-name:focus { outline: none; border-bottom-color: var(--accent); }
+.formation-name { font: 700 21px/1.1 var(--font-num); color: var(--muted); letter-spacing: .02em; margin-top: 4px; }
+.status { font-size: 12.5px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+.status.warn { color: var(--danger); }
+.ovr-badge {
+  flex: none; width: 78px; height: 88px;
+  clip-path: polygon(50% 0, 100% 15%, 100% 72%, 50% 100%, 0 72%, 0 15%);
+  background: var(--accent);
+  background: linear-gradient(170deg, var(--accent) 30%, color-mix(in srgb, var(--accent) 62%, #000));
+  color: var(--accent-ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding-bottom: 8px;
+}
+.ovr-badge .lbl { font: 700 13px/1 var(--font-ui); opacity: .8; }
+.ovr-badge .num { font: 800 38px/1 var(--font-num); margin-top: 2px; }
+.ovr-badge .num small { font-size: 18px; font-weight: 700; opacity: .7; margin-left: 1px; }
+
+/* Formation picker */
+.formations {
+  display: flex; gap: 8px;
+  overflow-x: auto; scrollbar-width: none;
+  margin: 0 -14px; padding: 2px 14px 4px;
+}
+.formations::-webkit-scrollbar { display: none; }
+@media (min-width: 900px) {
+  .formations { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+}
+.fchip {
+  flex: none;
+  display: inline-flex; align-items: baseline; gap: 6px;
+  min-height: 44px; padding: 8px 13px;
+  border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); cursor: pointer;
+}
+.fchip span { font: 700 20px/1 var(--font-num); letter-spacing: .02em; }
+.fchip small { font-size: 12px; color: var(--muted); }
+.fchip:hover { border-color: color-mix(in srgb, var(--ink) 30%, transparent); }
+.fchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.fchip[aria-pressed="true"] small { color: inherit; opacity: .75; }
+
+/* Tools */
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 44px; padding: 10px 14px;
+  border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface);
+  font-weight: 500; font-size: 14.5px; line-height: 1;
+  cursor: pointer;
+}
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn:hover { border-color: color-mix(in srgb, var(--ink) 30%, transparent); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); font-weight: 700; }
+.btn.quiet { background: transparent; }
+.btn.danger { color: var(--danger); }
+.btn:disabled { opacity: .55; cursor: progress; }
+.hint { margin: 0; font-size: 13.5px; color: var(--muted); }
+.swapping .hint { color: var(--ink); font-weight: 500; }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Pitch */
+.pitch {
+  position: relative;
+  width: 100%; max-width: 600px; margin: 0 auto;
+  aspect-ratio: 100 / 140;
+  border-radius: 20px; overflow: hidden;
+  background: repeating-linear-gradient(180deg, var(--pitch-a) 0 11.111%, var(--pitch-b) 11.111% 22.222%);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.pitch .lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pitch .lines * { fill: none; stroke: var(--chalk); stroke-width: .4; }
+.pitch .lines .dot { fill: var(--chalk); stroke: none; }
+
+.slot {
+  position: absolute;
+  left: calc(var(--x, 50) * 1%); top: calc(var(--y, 50) * 1%);
+  width: 18.5%;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0; margin: 0; border: 0; background: none;
+  cursor: pointer;
+  container-type: inline-size;
+  transition: left .42s var(--ease), top .42s var(--ease);
+}
+.slot:focus-visible { outline: none; }
+.slot:focus-visible .card { outline: 3px solid var(--accent); outline-offset: 3px; }
+.slot.bench { position: relative; left: auto; top: auto; width: 100%; transform: none; transition: none; }
+
+.card { position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; container-type: inline-size; }
+.card.filled { filter: drop-shadow(0 5px 8px rgba(0, 0, 0, .38)); }
+.frame {
+  position: absolute; inset: 0;
+  clip-path: polygon(12% 0, 88% 0, 100% 8%, 100% 92%, 50% 100%, 0 92%, 0 8%);
+  background: linear-gradient(155deg, var(--a) 0%, var(--b) 48%, var(--a) 74%, var(--b) 100%);
+}
+.face {
+  position: absolute; inset: 4.5%;
+  clip-path: polygon(11% 0, 89% 0, 100% 7%, 100% 92%, 50% 100%, 0 92%, 0 7%);
+  background: var(--face);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--b) 45%, var(--face)) 0%, var(--face) 100%);
+  overflow: hidden;
+}
+.photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
+  object-fit: cover;
+  object-position: var(--fx, 50%) var(--fy, 25%);
+  transform: scale(var(--z, 1));
+  transform-origin: var(--fx, 50%) var(--fy, 25%);
+}
+.sil { position: absolute; inset: 12% 0 0; width: 100%; height: 88%; fill: rgba(255, 255, 255, .16); }
+
+
+.empty-box {
+  position: absolute; inset: 3%;
+  border: max(1.5px, 1.6cqw) dashed var(--slot-dash);
+  border-radius: 12cqw;
+  background: var(--slot-empty);
+  display: grid; place-items: center;
+  color: var(--slot-dash);
+  transition: background-color .2s, border-color .2s;
+}
+.empty-box svg { width: 36cqw; height: 36cqw; }
+.slot:hover .empty-box { background: rgba(255, 255, 255, .14); }
+.slot.bench .empty-box { border-color: var(--bench-dash); color: var(--bench-dash); background: var(--surface-2); }
+.slot.bench:hover .empty-box { background: var(--surface); }
+
+.chip {
+  position: relative; z-index: 1;
+  margin-top: -.55em;
+  padding: .12em .6em .1em;
+  border-radius: 999px;
+  background: rgba(6, 20, 16, .82);
+  font: 700 max(10.5px, 12cqw)/1.15 var(--font-num);
+  letter-spacing: .04em;
+  color: var(--c, #C9D6D8);
+  pointer-events: none;
+}
+.chip.l-fwd { --c: #FF9585; }
+.chip.l-mid { --c: #8CE7A0; }
+.chip.l-def { --c: #85C8FF; }
+.chip.l-gk { --c: #FFCB63; }
+.chip.l-sub { --c: #C9D6D8; }
+
+.slot.picked .card { outline: 3px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+.swapping .slot:not(.picked) .card { animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .78; } }
+.pop .card { animation: pop .32s var(--ease); }
+@keyframes pop { 40% { transform: scale(1.08); } }
+
+/* Bench */
+.bench-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 12px; }
+.bench-head h2 { margin: 0; font-size: 17px; font-weight: 700; }
+.bench-head span { font: 700 17px/1 var(--font-num); color: var(--muted); }
+.bench-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 12px; }
+@media (min-width: 560px) and (max-width: 899px) { .bench-row { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+
+/* Dialogs */
+dialog {
+  border: 0; padding: 0;
+  background: var(--surface); color: var(--ink);
+  box-shadow: var(--shadow);
+}
+dialog::backdrop { background: rgba(4, 14, 17, .55); }
+.sheet {
+  width: 100%; max-width: 100%;
+  max-height: 92vh; max-height: 92dvh;
+  margin: auto 0 0;
+  border-radius: 22px 22px 0 0;
+  overflow: auto;
+}
+.sheet[open] { animation: rise .28s var(--ease); }
+@keyframes rise { from { transform: translateY(24px); opacity: 0; } }
+@media (min-width: 640px) {
+  .sheet { max-width: 600px; margin: auto; border-radius: 22px; }
+}
+.sheet-in { padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sheet-head h2 { margin: 0; font: 700 26px/1 var(--font-num); letter-spacing: .02em; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 12px;
+  border: 1px solid var(--line); background: transparent;
+  display: grid; place-items: center; cursor: pointer;
+}
+.icon-btn svg { width: 20px; height: 20px; }
+
+.ed-grid { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 380px) { .ed-grid { grid-template-columns: 110px minmax(0, 1fr); gap: 14px; } }
+.ed-preview { display: grid; gap: 10px; }
+.ed-preview .slot { position: relative; left: auto; top: auto; transform: none; width: 100%; cursor: default; transition: none; }
+.ed-preview .btn { width: 100%; padding: 10px 8px; font-size: 14px; }
+.ed-fields { display: grid; gap: 14px; }
+.fit legend, .swatches legend { font-size: 13px; font-weight: 500; color: var(--muted); }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.swatches legend, .fit legend { padding: 0; margin-bottom: 8px; }
+.swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { position: relative; }
+.swatch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.swatch span {
+  display: block; width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(155deg, var(--a), var(--b) 55%, var(--a));
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15);
+  cursor: pointer;
+}
+.swatch input:checked + span { outline: 3px solid var(--ink); outline-offset: 2px; }
+.swatch input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.fit label { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 13.5px; min-height: 36px; }
+.fit input[type="range"] { width: 100%; accent-color: var(--accent); }
+.sheet-actions { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+.sheet-actions .spacer { flex: 1; }
+.confirm { max-width: 380px; margin: auto; border-radius: 20px; }
+.confirm .sheet-in { padding-bottom: 18px; }
+.confirm h2 { margin: 0 0 6px; font-size: 18px; }
+.confirm p { margin: 0; color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 12px);
+  max-width: calc(100% - 32px);
+  background: var(--ink); color: var(--bg);
+  padding: 11px 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 500;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s var(--ease);
+  z-index: 10;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+  <section class="head" aria-label="팀 설정">
+    <div class="team">
+      <div class="team-text">
+        <input id="teamName" class="team-name" maxlength="20" placeholder="팀 이름" aria-label="팀 이름" autocomplete="off">
+        <div class="formation-name" id="formationName"></div>
+        <div class="status" id="status" role="status"></div>
+      </div>
+      <div class="ovr-badge" aria-label="선발 인원">
+        <span class="lbl">선발</span>
+        <span class="num"><span id="teamCount">0</span><small>/11</small></span>
+      </div>
+    </div>
+    <div class="formations" id="formations" role="group" aria-label="포메이션"></div>
+    <div class="tools">
+      <button type="button" class="btn" id="swapBtn" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4 3 8l4 4"/><path d="M3 8h13"/><path d="m17 20 4-4-4-4"/><path d="M21 16H8"/></svg>
+        자리 바꾸기
+      </button>
+      <button type="button" class="btn" id="copyBtn" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg>
+        복사하기
+      </button>
+      <button type="button" class="btn" id="exportBtn" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg>
+        이미지로 저장
+      </button>
+      <button type="button" class="btn quiet danger" id="resetBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>
+        초기화
+      </button>
+    </div>
+    <p class="hint" id="hint" aria-live="polite"></p>
+  </section>
+
+  <section class="board" aria-label="선발 11명">
+    <div class="pitch" id="pitch">
+      <svg class="lines" viewBox="0 0 100 140" aria-hidden="true">
+        <rect x="3" y="3" width="94" height="134" rx="1"/>
+        <line x1="3" y1="70" x2="97" y2="70"/>
+        <circle cx="50" cy="70" r="10"/>
+        <circle class="dot" cx="50" cy="70" r=".8"/>
+        <rect x="22" y="3" width="56" height="20"/>
+        <rect x="36" y="3" width="28" height="7"/>
+        <circle class="dot" cx="50" cy="16" r=".7"/>
+        <path d="M44.34 23 A9 9 0 0 0 55.66 23"/>
+        <rect x="22" y="117" width="56" height="20"/>
+        <rect x="36" y="130" width="28" height="7"/>
+        <circle class="dot" cx="50" cy="124" r=".7"/>
+        <path d="M44.34 117 A9 9 0 0 1 55.66 117"/>
+        <path d="M3 5.5 A2.5 2.5 0 0 0 5.5 3"/>
+        <path d="M94.5 3 A2.5 2.5 0 0 0 97 5.5"/>
+        <path d="M5.5 137 A2.5 2.5 0 0 0 3 134.5"/>
+        <path d="M97 134.5 A2.5 2.5 0 0 0 94.5 137"/>
+      </svg>
+      <div id="slots"></div>
+    </div>
+  </section>
+
+  <section class="subs" aria-label="교체 명단">
+    <div class="bench-head"><h2>교체 명단</h2><span id="benchCount">0/7</span></div>
+    <div class="bench-row" id="benchRow"></div>
+  </section>
+</main>
+
+<input type="file" id="fileInput" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
+
+<dialog class="sheet" id="editor" aria-labelledby="edTitle">
+  <div class="sheet-in">
+    <div class="sheet-head">
+      <h2 id="edTitle">LW</h2>
+      <button type="button" class="icon-btn" id="edClose" aria-label="닫기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="ed-grid">
+      <div class="ed-preview">
+        <div class="slot" aria-hidden="true"><span class="card filled" id="edCard"></span><span class="chip" id="edChip"></span></div>
+        <button type="button" class="btn" id="edPick">사진 바꾸기</button>
+      </div>
+      <div class="ed-fields">
+        <fieldset class="swatches"><legend>카드 색</legend><div class="swatch-row" id="swatches"></div></fieldset>
+        <fieldset class="fit" id="fit">
+          <legend>사진 맞추기</legend>
+          <label><span>확대</span><input type="range" id="fitZ" min="1" max="3" step="0.01"></label>
+          <label><span>좌우</span><input type="range" id="fitX" min="0" max="100" step="1"></label>
+          <label><span>상하</span><input type="range" id="fitY" min="0" max="100" step="1"></label>
+        </fieldset>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="btn quiet danger" id="edClear">선수 빼기</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="edCancel">취소</button>
+      <button type="button" class="btn primary" id="edSave">저장</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="confirm" id="confirmDlg" aria-labelledby="cfTitle">
+  <div class="sheet-in">
+    <h2 id="cfTitle">전체 초기화</h2>
+    <p>모든 선수와 사진을 지웁니다. 되돌릴 수 없습니다.</p>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="cfCancel">취소</button>
+      <button type="button" class="btn primary" id="cfOk">초기화</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Data ---------- */
+const GK = ['GK', 50, 90.5];
+const BACK4 = [['LB', 11, 67.5], ['CB', 36, 71.5], ['CB', 64, 71.5], ['RB', 89, 67.5]];
+const FORMATIONS = [
+  { id: '433-2dm', name: '4-3-3', sub: '2 DM', slots: [GK, ...BACK4, ['CDM', 25, 46], ['CM', 50, 37], ['CDM', 75, 46], ['LW', 17, 15], ['ST', 50, 11], ['RW', 83, 15]] },
+  { id: '433', name: '4-3-3', sub: '', slots: [GK, ...BACK4, ['CM', 24, 42], ['CM', 50, 44], ['CM', 76, 42], ['LW', 17, 15], ['ST', 50, 11], ['RW', 83, 15]] },
+  { id: '433-att', name: '4-3-3', sub: '공격형', slots: [GK, ...BACK4, ['CM', 25, 47], ['CAM', 50, 35], ['CM', 75, 47], ['LW', 15, 15], ['ST', 50, 11], ['RW', 85, 15]] },
+  { id: '442', name: '4-4-2', sub: '', slots: [GK, ...BACK4, ['LM', 11, 41], ['CM', 37, 45], ['CM', 63, 45], ['RM', 89, 41], ['ST', 34, 12], ['ST', 66, 12]] },
+  { id: '4231', name: '4-2-3-1', sub: '', slots: [GK, ['LB', 11, 69], ['CB', 36, 72], ['CB', 64, 72], ['RB', 89, 69], ['CDM', 33, 51], ['CDM', 67, 51], ['LW', 14, 30], ['CAM', 50, 31], ['RW', 86, 30], ['ST', 50, 11]] },
+  { id: '41212', name: '4-1-2-1-2', sub: '', slots: [GK, ['LB', 11, 69], ['CB', 36, 72], ['CB', 64, 72], ['RB', 89, 69], ['CDM', 50, 51.5], ['CM', 22, 42], ['CM', 78, 42], ['CAM', 50, 31], ['ST', 30, 11], ['ST', 70, 11]] },
+  { id: '352', name: '3-5-2', sub: '', slots: [GK, ['CB', 25, 69], ['CB', 50, 70.5], ['CB', 75, 69], ['LM', 10, 40], ['CM', 30, 47], ['CAM', 50, 33], ['CM', 70, 47], ['RM', 90, 40], ['ST', 34, 11], ['ST', 66, 11]] },
+  { id: '343', name: '3-4-3', sub: '', slots: [GK, ['CB', 25, 69], ['CB', 50, 70.5], ['CB', 75, 69], ['LM', 11, 43], ['CM', 37, 47], ['CM', 63, 47], ['RM', 89, 43], ['LW', 17, 15], ['ST', 50, 11], ['RW', 83, 15]] },
+  { id: '532', name: '5-3-2', sub: '', slots: [GK, ['LWB', 10, 62], ['CB', 30, 69], ['CB', 50, 70.5], ['CB', 70, 69], ['RWB', 90, 62], ['CM', 26, 42], ['CM', 50, 45], ['CM', 74, 42], ['ST', 34, 12], ['ST', 66, 12]] },
+];
+const FMAP = Object.fromEntries(FORMATIONS.map(f => [f.id, f]));
+const THEMES = {
+  gold:     { label: '골드',     a: '#FFE7A3', b: '#C4912F', face: '#3B2B0E' },
+  ruby:     { label: '루비',     a: '#FF8E99', b: '#961A36', face: '#2B0911' },
+  sapphire: { label: '사파이어', a: '#8DB4FF', b: '#2139A3', face: '#0C1536' },
+  emerald:  { label: '에메랄드', a: '#86F2C6', b: '#0E7A56', face: '#07291F' },
+  violet:   { label: '바이올렛', a: '#D9B0FF', b: '#5A27B3', face: '#1A0C36' },
+  silver:   { label: '실버',     a: '#F5F8FB', b: '#8C98A5', face: '#1E252C' },
+};
+const LINE_OF = pos => pos === 'GK' ? 'gk'
+  : /^(CB|LB|RB|LWB|RWB)$/.test(pos) ? 'def'
+  : /^(CDM|CM|CAM|LM|RM)$/.test(pos) ? 'mid'
+  : pos === 'SUB' ? 'sub' : 'fwd';
+const CHIP_COLOR = { fwd: '#FF9585', mid: '#8CE7A0', def: '#85C8FF', gk: '#FFCB63', sub: '#C9D6D8' };
+const N_START = 11, N_BENCH = 7, N = N_START + N_BENCH;
+const KEY = 'formation-maker:v1';
+const DEFAULT_NAME = '나의 팀';
+
+const $ = s => document.querySelector(s);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const newId = () => 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+/* ---------- State ---------- */
+const freshState = () => ({ teamName: DEFAULT_NAME, formation: '433-2dm', slots: new Array(N).fill(null) });
+let state = freshState();
+const photos = new Map();   // photoId -> data URL (one photo can sit in several slots)
+const imgCache = new Map(); // photoId -> decoded Image (for export)
+let dirty = false;
+
+function num(v, min, max, def) { v = Number(v); return Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : def; }
+function cleanSlot(s) {
+  if (!s || typeof s !== 'object') return null;
+  const photoId = typeof s.photoId === 'string' && /^p_[a-z0-9]+$/.test(s.photoId) ? s.photoId : null;
+  if (!photoId) return null;
+  return { theme: THEMES[s.theme] ? s.theme : 'gold', photoId, fx: num(s.fx, 0, 100, 50), fy: num(s.fy, 0, 100, 25), z: num(s.z, 1, 3, 1) };
+}
+function cleanState(s) {
+  const out = freshState();
+  if (!s || typeof s !== 'object') return out;
+  if (typeof s.teamName === 'string') out.teamName = s.teamName.slice(0, 20);
+  if (FMAP[s.formation]) out.formation = s.formation;
+  if (Array.isArray(s.slots)) for (let i = 0; i < N; i++) out.slots[i] = cleanSlot(s.slots[i]);
+  return out;
+}
+function usedPhotoIds() { return new Set(state.slots.filter(s => s && s.photoId).map(s => s.photoId)); }
+
+/* ---------- Storage: this browser ---------- */
+function saveLocal() {
+  try {
+    const used = {};
+    usedPhotoIds().forEach(id => { if (photos.has(id)) used[id] = photos.get(id); });
+    localStorage.setItem(KEY, JSON.stringify({ state, photos: used }));
+    return true;
+  } catch (e) { return false; }
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d && d.photos && typeof d.photos === 'object') {
+      for (const [k, v] of Object.entries(d.photos)) if (typeof v === 'string' && v.startsWith('data:image/')) photos.set(k, v);
+    }
+    state = cleanState(d && d.state);
+    state.slots = state.slots.map(s => s && photos.has(s.photoId) ? s : null);
+  } catch (e) { /* start fresh */ }
+}
+
+/* ---------- Storage: account (db capability) ---------- */
+const remote = { db: null, uid: null, chain: Promise.resolve(), timer: 0 };
+const boardDoc = () => remote.db.doc(`data/users/${remote.uid}/board`);
+const photoDoc = id => remote.db.doc(`data/users/${remote.uid}/${id}`);
+const boardData = () => ({ v: 2, teamName: state.teamName, formation: state.formation, slots: state.slots.map(s => s ? { ...s } : {}) });
+
+function queue(fn) {
+  remote.chain = remote.chain.then(async () => {
+    if (!remote.db) return;
+    try { await fn(); }
+    catch (e) {
+      if (e && e.code === 'unavailable') {
+        await wait(700 + Math.random() * 900);
+        try { await fn(); } catch (e2) { return remoteFail(e2); }
+      } else return remoteFail(e);
+    }
+    if (!remote.timer) setStatus('cloud');
+  });
+  return remote.chain;
+}
+function remoteFail(e) {
+  const code = e && e.code;
+  if (code === 'quota_exceeded') { setStatus('cloud-full'); return; }
+  if (code === 'invalid_argument' || code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') {
+    remote.db = null;
+    setStatus(saveLocal() ? 'local' : 'local-full');
+    return;
+  }
+  setStatus('error');
+}
+function putPhoto(id, url) {
+  photos.set(id, url);
+  if (remote.db) queue(() => photoDoc(id).set({ img: url }));
+}
+function gcPhotos() {
+  const used = usedPhotoIds();
+  [...photos.keys()].forEach(id => {
+    if (used.has(id)) return;
+    photos.delete(id); imgCache.delete(id);
+    if (remote.db) queue(() => photoDoc(id).delete());
+  });
+}
+function persist() {
+  dirty = true;
+  gcPhotos();
+  const okLocal = saveLocal();
+  if (remote.db) {
+    clearTimeout(remote.timer);
+    setStatus('saving');
+    remote.timer = setTimeout(() => { remote.timer = 0; queue(() => boardDoc().set(boardData())); }, 450);
+  } else {
+    setStatus(okLocal ? 'local' : 'local-full');
+  }
+}
+
+async function connect() {
+  const cl = window.claude;
+  if (!cl || typeof cl.use !== 'function') return;
+  try {
+    const [db, user] = await Promise.all([cl.use('db'), cl.use('user')]);
+    if (!db || !user) return;
+    const uid = await user.id();
+    if (!uid) return;
+    const snap = await db.collection(`data/users/${uid}`).get();
+    let board = null;
+    const remotePhotos = new Map();
+    snap.docs.forEach(d => {
+      const data = d.exists ? d.data() : null;
+      if (!data) return;
+      if (d.id === 'board') board = data;
+      else if (d.id.startsWith('p_') && typeof data.img === 'string') remotePhotos.set(d.id, data.img);
+    });
+    remote.db = db; remote.uid = uid;
+    if (board && !dirty) {
+      photos.clear(); imgCache.clear();
+      remotePhotos.forEach((v, k) => photos.set(k, v));
+      state = cleanState(board);
+      state.slots = state.slots.map(s => s && photos.has(s.photoId) ? s : null);
+      renderAll();
+      saveLocal();
+      const used = usedPhotoIds();
+      remotePhotos.forEach((_, k) => { if (!used.has(k)) { photos.delete(k); queue(() => photoDoc(k).delete()); } });
+      if (board.v !== 2) queue(() => boardDoc().set(boardData()));
+      setStatus('cloud');
+    } else {
+      const used = usedPhotoIds();
+      used.forEach(id => { if (photos.has(id) && !remotePhotos.has(id)) { const url = photos.get(id); queue(() => photoDoc(id).set({ img: url })); } });
+      remotePhotos.forEach((_, k) => { if (!used.has(k)) queue(() => photoDoc(k).delete()); });
+      queue(() => boardDoc().set(boardData()));
+    }
+  } catch (e) {
+    remote.db = null;
+  }
+}
+
+/* ---------- Status & toast ---------- */
+const STATUS = {
+  local: ['이 브라우저에 자동 저장됩니다', false],
+  'local-full': ['브라우저 저장 공간이 부족합니다. 사진 수를 줄이세요', true],
+  saving: ['저장 중…', false],
+  cloud: ['자동 저장됨', false],
+  'cloud-full': ['저장 공간이 가득 찼습니다. 사진 수를 줄이세요', true],
+  error: ['저장하지 못했습니다. 연결을 확인하세요', true],
+};
+function setStatus(k) {
+  const el = $('#status'); const [txt, warn] = STATUS[k] || ['', false];
+  el.textContent = txt; el.classList.toggle('warn', warn);
+}
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ---------- Rendering ---------- */
+const SIL = '<svg class="sil" viewBox="0 0 100 110" aria-hidden="true"><circle cx="50" cy="40" r="19"/><path d="M12 110c0-27 16-45 38-45s38 18 38 45z"/></svg>';
+const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10.2"/><path d="M12 7.5v9M7.5 12h9"/></svg>';
+
+function applyTheme(card, theme) {
+  const t = THEMES[theme] || THEMES.gold;
+  card.style.setProperty('--a', t.a); card.style.setProperty('--b', t.b); card.style.setProperty('--face', t.face);
+}
+function cardInner(s, url) {
+  if (!s) return `<span class="empty-box">${PLUS}</span>`;
+  const img = url ? `<img class="photo" alt="" src="${url}" style="--fx:${s.fx}%;--fy:${s.fy}%;--z:${s.z}">` : SIL;
+  return `<span class="frame"></span><span class="face">${img}</span>`;
+}
+
+const slotEls = [];
+function posOf(i) { return i < N_START ? FMAP[state.formation].slots[i][0] : 'SUB'; }
+function whereOf(i) { return i < N_START ? posOf(i) : `교체 ${i - N_START + 1}`; }
+function buildSlots() {
+  const pitchWrap = $('#slots'), bench = $('#benchRow');
+  for (let i = 0; i < N; i++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'slot' + (i >= N_START ? ' bench' : '');
+    b.innerHTML = '<span class="card"></span><span class="chip"></span>';
+    b.addEventListener('click', () => onSlot(i));
+    (i < N_START ? pitchWrap : bench).appendChild(b);
+    slotEls.push(b);
+  }
+}
+function labelSlot(i) {
+  const el = slotEls[i], pos = posOf(i);
+  const chip = el.lastElementChild;
+  chip.textContent = pos;
+  chip.className = 'chip l-' + LINE_OF(pos);
+  el.setAttribute('aria-label', `${whereOf(i)}: ${state.slots[i] ? '사진 있음' : '빈 자리, 사진 추가'}`);
+}
+function renderSlot(i) {
+  const el = slotEls[i], s = state.slots[i], card = el.firstElementChild;
+  card.className = 'card ' + (s ? 'filled' : 'empty');
+  if (s) applyTheme(card, s.theme);
+  card.innerHTML = cardInner(s, s ? photos.get(s.photoId) : null);
+  labelSlot(i);
+}
+function place() {
+  const f = FMAP[state.formation];
+  for (let i = 0; i < N_START; i++) {
+    const [, x, y] = f.slots[i];
+    slotEls[i].style.setProperty('--x', x);
+    slotEls[i].style.setProperty('--y', y);
+    labelSlot(i);
+  }
+  $('#formationName').textContent = f.name + (f.sub ? ' ' + f.sub : '');
+  document.querySelectorAll('.fchip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === state.formation)));
+}
+function renderCount() {
+  $('#teamCount').textContent = state.slots.slice(0, N_START).filter(Boolean).length;
+  $('#benchCount').textContent = `${state.slots.slice(N_START).filter(Boolean).length}/${N_BENCH}`;
+}
+function renderAll() {
+  $('#teamName').value = state.teamName;
+  for (let i = 0; i < N; i++) renderSlot(i);
+  place();
+  renderCount();
+}
+function buildFormations() {
+  const wrap = $('#formations');
+  FORMATIONS.forEach(f => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fchip'; b.dataset.id = f.id;
+    b.innerHTML = `<span>${f.name}</span>${f.sub ? `<small>${f.sub}</small>` : ''}`;
+    b.addEventListener('click', () => {
+      if (state.formation === f.id) return;
+      state.formation = f.id; place(); persist();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* ---------- Modes: swap / copy ---------- */
+const HINT = {
+  idle: '빈칸을 눌러 사진을 넣고, 카드를 눌러 위치와 색을 고치세요. 사진을 여러 장 고르면 빈칸에 차례로 들어갑니다.',
+  swap: '바꿀 두 자리를 차례로 누르세요. 빈칸으로도 옮길 수 있습니다.',
+  copy: '복사할 카드를 누르세요.',
+  copyReady: '붙일 자리를 누르세요. 여러 자리에 계속 붙일 수 있고, 다 되면 복사하기를 끄세요.',
+};
+let mode = null, picked = null;
+function unpick() { if (picked !== null) { slotEls[picked].classList.remove('picked'); picked = null; } }
+function setMode(m) {
+  mode = m;
+  unpick();
+  $('#swapBtn').setAttribute('aria-pressed', String(m === 'swap'));
+  $('#copyBtn').setAttribute('aria-pressed', String(m === 'copy'));
+  document.body.classList.toggle('swapping', !!m);
+  $('#hint').textContent = HINT[m || 'idle'];
+}
+function pop(i) {
+  const el = slotEls[i]; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 400);
+}
+function onSlot(i) {
+  if (mode === 'swap') {
+    if (picked === null) { picked = i; slotEls[i].classList.add('picked'); return; }
+    const a = picked; unpick();
+    if (a === i) return;
+    [state.slots[a], state.slots[i]] = [state.slots[i], state.slots[a]];
+    renderSlot(a); renderSlot(i); pop(a); pop(i); renderCount(); persist();
+    return;
+  }
+  if (mode === 'copy') {
+    if (picked === null) {
+      if (!state.slots[i]) { toast('사진이 있는 카드를 먼저 고르세요'); return; }
+      picked = i; slotEls[i].classList.add('picked'); $('#hint').textContent = HINT.copyReady; return;
+    }
+    if (picked === i) { unpick(); $('#hint').textContent = HINT.copy; return; }
+    state.slots[i] = { ...state.slots[picked] };
+    renderSlot(i); pop(i); renderCount(); persist();
+    return;
+  }
+  if (state.slots[i]) openEditor(i);
+  else pickPhoto({ kind: 'new', i });
+}
+
+/* ---------- Photos ---------- */
+const fileInput = $('#fileInput');
+let pickTarget = null;
+function pickPhoto(target) {
+  pickTarget = target;
+  fileInput.multiple = target.kind === 'new';
+  fileInput.value = '';
+  fileInput.click();
+}
+function loadImage(src) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
+}
+async function processImage(file) {
+  const src = URL.createObjectURL(file);
+  try {
+    const img = await loadImage(src);
+    const w0 = img.naturalWidth, h0 = img.naturalHeight;
+    if (!w0 || !h0) throw new Error('empty');
+    const s = Math.min(1, 560 / Math.max(w0, h0));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w0 * s)); c.height = Math.max(1, Math.round(h0 * s));
+    const x = c.getContext('2d');
+    x.drawImage(img, 0, 0, c.width, c.height);
+    const LIMIT = 190000;
+    let out = c.toDataURL('image/webp', 0.86);
+    if (out.startsWith('data:image/webp')) {
+      for (let q = 0.74; out.length > LIMIT && q > 0.3; q -= 0.12) out = c.toDataURL('image/webp', q);
+    } else {
+      out = c.toDataURL('image/png');
+      if (out.length > LIMIT) {
+        x.globalCompositeOperation = 'destination-over'; x.fillStyle = '#22303A'; x.fillRect(0, 0, c.width, c.height);
+        out = c.toDataURL('image/jpeg', 0.85);
+        for (let q = 0.73; out.length > LIMIT && q > 0.3; q -= 0.12) out = c.toDataURL('image/jpeg', q);
+      }
+    }
+    return out;
+  } finally { URL.revokeObjectURL(src); }
+}
+fileInput.addEventListener('change', async () => {
+  const files = fileInput.files ? [...fileInput.files] : [];
+  const t = pickTarget; pickTarget = null;
+  if (!files.length || !t) return;
+
+  if (t.kind === 'editor') {
+    if (!ed) return;
+    try { ed.photo = await processImage(files[0]); }
+    catch (e) { toast('이 사진은 열 수 없습니다. JPG나 PNG 파일로 다시 시도하세요.'); return; }
+    ed.photoChanged = true; ed.d.fx = 50; ed.d.fy = 25; ed.d.z = 1;
+    drawPreview(); syncFit();
+    return;
+  }
+
+  // New photos: the tapped slot first, then the remaining empty slots in order.
+  const targets = [t.i, ...state.slots.map((s, k) => k).filter(k => k !== t.i && !state.slots[k])].filter(k => !state.slots[k]);
+  let placed = 0, failed = 0;
+  for (const f of files) {
+    if (placed >= targets.length) break;
+    let url;
+    try { url = await processImage(f); } catch (e) { failed++; continue; }
+    const i = targets[placed++];
+    const id = newId();
+    putPhoto(id, url);
+    state.slots[i] = { theme: 'gold', photoId: id, fx: 50, fy: 25, z: 1 };
+    renderSlot(i); pop(i);
+  }
+  if (placed) { renderCount(); persist(); }
+  const skipped = files.length - placed - failed;
+  if (failed && skipped > 0) toast(`${failed}장은 열 수 없고, 빈칸이 부족해 ${skipped}장은 넣지 않았습니다`);
+  else if (failed) toast(`${failed}장은 열 수 없습니다. JPG나 PNG 파일로 다시 시도하세요`);
+  else if (skipped > 0) toast(`빈칸이 부족해 ${skipped}장은 넣지 않았습니다`);
+});
+
+/* ---------- Editor ---------- */
+const editor = $('#editor'), edCard = $('#edCard');
+let ed = null;
+function buildSwatches() {
+  const row = $('#swatches');
+  Object.entries(THEMES).forEach(([k, t]) => {
+    const lab = document.createElement('label'); lab.className = 'swatch';
+    lab.innerHTML = `<input type="radio" name="theme" value="${k}" aria-label="${t.label}"><span style="--a:${t.a};--b:${t.b}"></span>`;
+    lab.querySelector('input').addEventListener('change', () => { if (ed) { ed.d.theme = k; applyTheme(edCard, k); } });
+    row.appendChild(lab);
+  });
+}
+function openEditor(i) {
+  const s = state.slots[i];
+  if (!s) return;
+  ed = { i, d: { theme: s.theme, fx: s.fx, fy: s.fy, z: s.z }, photo: photos.get(s.photoId) || null, photoChanged: false };
+  $('#edTitle').textContent = whereOf(i);
+  const pos = posOf(i), chip = $('#edChip');
+  chip.textContent = pos; chip.className = 'chip l-' + LINE_OF(pos);
+  document.querySelectorAll('input[name="theme"]').forEach(r => { r.checked = r.value === ed.d.theme; });
+  drawPreview(); syncFit();
+  if (!editor.open) editor.showModal();
+}
+function drawPreview() {
+  applyTheme(edCard, ed.d.theme);
+  edCard.innerHTML = cardInner({ ...ed.d }, ed.photo);
+}
+function syncFit() {
+  $('#fit').hidden = !ed.photo;
+  $('#fitZ').value = ed.d.z; $('#fitX').value = ed.d.fx; $('#fitY').value = ed.d.fy;
+}
+function updateFit() {
+  const img = edCard.querySelector('.photo');
+  if (!img) return;
+  img.style.setProperty('--fx', ed.d.fx + '%'); img.style.setProperty('--fy', ed.d.fy + '%'); img.style.setProperty('--z', ed.d.z);
+}
+$('#fitZ').addEventListener('input', e => { ed.d.z = +e.target.value; updateFit(); });
+$('#fitX').addEventListener('input', e => { ed.d.fx = +e.target.value; updateFit(); });
+$('#fitY').addEventListener('input', e => { ed.d.fy = +e.target.value; updateFit(); });
+$('#edPick').addEventListener('click', () => pickPhoto({ kind: 'editor' }));
+$('#edClose').addEventListener('click', () => editor.close());
+$('#edCancel').addEventListener('click', () => editor.close());
+editor.addEventListener('click', e => { if (e.target === editor) editor.close(); });
+editor.addEventListener('close', () => { ed = null; edCard.innerHTML = ''; });
+$('#edClear').addEventListener('click', () => {
+  const i = ed.i;
+  state.slots[i] = null;
+  renderSlot(i); renderCount(); persist();
+  editor.close();
+});
+$('#edSave').addEventListener('click', () => {
+  if (!ed) return;
+  const i = ed.i, prev = state.slots[i];
+  let photoId = prev.photoId;
+  if (ed.photoChanged && ed.photo) { photoId = newId(); putPhoto(photoId, ed.photo); }
+  state.slots[i] = { theme: ed.d.theme, photoId, fx: ed.d.fx, fy: ed.d.fy, z: ed.d.z };
+  renderSlot(i); renderCount(); persist();
+  editor.close();
+});
+
+/* ---------- Team name, modes, reset ---------- */
+$('#teamName').addEventListener('input', e => { state.teamName = e.target.value.slice(0, 20); persist(); });
+$('#teamName').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+$('#swapBtn').addEventListener('click', () => setMode(mode === 'swap' ? null : 'swap'));
+$('#copyBtn').addEventListener('click', () => setMode(mode === 'copy' ? null : 'copy'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && mode && !editor.open) setMode(null); });
+const confirmDlg = $('#confirmDlg');
+$('#resetBtn').addEventListener('click', () => confirmDlg.showModal());
+$('#cfCancel').addEventListener('click', () => confirmDlg.close());
+confirmDlg.addEventListener('click', e => { if (e.target === confirmDlg) confirmDlg.close(); });
+$('#cfOk').addEventListener('click', () => {
+  state = freshState();
+  setMode(null);
+  renderAll(); persist();
+  confirmDlg.close();
+  toast('초기화했습니다');
+});
+
+/* ---------- Export as image ---------- */
+let downloads = null;
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function mix(h1, h2, t) { const a = hexToRgb(h1), b = hexToRgb(h2); return `rgb(${a.map((v, k) => Math.round(v * t + b[k] * (1 - t))).join(',')})`; }
+function poly(ctx, x, y, w, h, pts) { ctx.beginPath(); pts.forEach(([px, py], k) => ctx[k ? 'lineTo' : 'moveTo'](x + px * w, y + py * h)); ctx.closePath(); }
+const OUTER = [[.12, 0], [.88, 0], [1, .08], [1, .92], [.5, 1], [0, .92], [0, .08]];
+const INNER = [[.11, 0], [.89, 0], [1, .07], [1, .92], [.5, 1], [0, .92], [0, .07]];
+function rrect(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function fitFont(ctx, text, maxW, weight, size, family) {
+  let s = size;
+  ctx.font = `${weight} ${s}px ${family}`;
+  while (ctx.measureText(text).width > maxW && s > size * 0.55) { s -= 1; ctx.font = `${weight} ${s}px ${family}`; }
+  if (ctx.measureText(text).width <= maxW) return text;
+  let t = text; while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+  return t + '…';
+}
+async function imgFor(id) {
+  if (imgCache.has(id)) return imgCache.get(id);
+  const url = photos.get(id); if (!url) return null;
+  try { const im = await loadImage(url); imgCache.set(id, im); return im; } catch (e) { return null; }
+}
+const NUMF = '"Barlow Condensed", "Arial Narrow", sans-serif';
+const UIF = '"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+
+async function drawCard(ctx, cx, cy, w, s, pos) {
+  const h = w * 1.25, x = cx - w / 2, y = cy - h / 2;
+  if (!s) {
+    ctx.save();
+    rrect(ctx, x + w * .03, y + h * .03, w * .94, h * .94, w * .12);
+    ctx.fillStyle = 'rgba(214,255,236,.06)'; ctx.fill();
+    ctx.setLineDash([w * .06, w * .04]); ctx.lineWidth = Math.max(2, w * .016); ctx.strokeStyle = 'rgba(214,255,236,.5)'; ctx.stroke();
+    ctx.setLineDash([]);
+    const r = w * .17;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - r * .45, cy); ctx.lineTo(cx + r * .45, cy); ctx.moveTo(cx, cy - r * .45); ctx.lineTo(cx, cy + r * .45); ctx.stroke();
+    ctx.restore();
+  } else {
+    const t = THEMES[s.theme] || THEMES.gold;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.42)'; ctx.shadowBlur = w * .08; ctx.shadowOffsetY = w * .035;
+    poly(ctx, x, y, w, h, OUTER);
+    const g = ctx.createLinearGradient(x, y, x + w * .55, y + h);
+    g.addColorStop(0, t.a); g.addColorStop(.48, t.b); g.addColorStop(.74, t.a); g.addColorStop(1, t.b);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.restore();
+
+    const ix = x + w * .045, iy = y + h * .045, iw = w * .91, ih = h * .91;
+    ctx.save();
+    poly(ctx, ix, iy, iw, ih, INNER); ctx.clip();
+    const fg = ctx.createLinearGradient(0, iy, 0, iy + ih);
+    fg.addColorStop(0, mix(t.b, t.face, .45)); fg.addColorStop(1, t.face);
+    ctx.fillStyle = fg; ctx.fillRect(ix, iy, iw, ih);
+    const im = await imgFor(s.photoId);
+    if (im) {
+      const sc = Math.max(iw / im.naturalWidth, ih / im.naturalHeight) * s.z;
+      const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
+      ctx.drawImage(im, ix + (iw - dw) * s.fx / 100, iy + (ih - dh) * s.fy / 100, dw, dh);
+    }
+    ctx.restore();
+  }
+  ctx.save();
+  ctx.font = `700 ${w * .12}px ${NUMF}`;
+  const tw = ctx.measureText(pos).width, ph = w * .15, pw = tw + w * .14;
+  const py = y + h - ph * .45;
+  rrect(ctx, cx - pw / 2, py, pw, ph, ph / 2);
+  ctx.fillStyle = 'rgba(6,20,16,.85)'; ctx.fill();
+  ctx.fillStyle = CHIP_COLOR[LINE_OF(pos)]; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(pos, cx, py + ph * .54);
+  ctx.restore();
+}
+
+async function drawExport() {
+  const benchFilled = state.slots.slice(N_START).some(Boolean);
+  const W = 1080, PX = 40, PW = 1000, PH = 1400, HEAD = 200, BENCH = benchFilled ? 300 : 0;
+  const H = HEAD + PH + BENCH + 44;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#0B1A20'; ctx.fillRect(0, 0, W, H);
+  const glow = ctx.createRadialGradient(W / 2, -80, 40, W / 2, -80, 900);
+  glow.addColorStop(0, 'rgba(38,84,92,.9)'); glow.addColorStop(1, 'rgba(11,26,32,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+
+  const f = FMAP[state.formation];
+  ctx.fillStyle = '#E6F0EE'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  const title = fitFont(ctx, state.teamName.trim() || DEFAULT_NAME, PW, 700, 62, UIF);
+  ctx.fillText(title, PX, 104);
+  ctx.fillStyle = '#8DA4A6'; ctx.font = `700 40px ${NUMF}`;
+  ctx.fillText(f.name + (f.sub ? ' ' + f.sub : ''), PX, 156);
+
+  const py = HEAD;
+  ctx.save();
+  rrect(ctx, PX, py, PW, PH, 30); ctx.clip();
+  for (let k = 0; k < 9; k++) { ctx.fillStyle = k % 2 ? '#10372A' : '#133F30'; ctx.fillRect(PX, py + k * PH / 9, PW, PH / 9 + 1); }
+  const u = PW / 100;
+  const X = v => PX + v * u, Y = v => py + v * u;
+  ctx.strokeStyle = 'rgba(214,255,236,.30)'; ctx.fillStyle = 'rgba(214,255,236,.30)'; ctx.lineWidth = .4 * u;
+  const sr = (x, y, w, h) => ctx.strokeRect(X(x), Y(y), w * u, h * u);
+  sr(3, 3, 94, 134); sr(22, 3, 56, 20); sr(36, 3, 28, 7); sr(22, 117, 56, 20); sr(36, 130, 28, 7);
+  ctx.beginPath(); ctx.moveTo(X(3), Y(70)); ctx.lineTo(X(97), Y(70)); ctx.stroke();
+  ctx.beginPath(); ctx.arc(X(50), Y(70), 10 * u, 0, Math.PI * 2); ctx.stroke();
+  const ang = Math.atan2(7, 5.66);
+  ctx.beginPath(); ctx.arc(X(50), Y(16), 9 * u, ang, Math.PI - ang); ctx.stroke();
+  ctx.beginPath(); ctx.arc(X(50), Y(124), 9 * u, Math.PI + ang, -ang); ctx.stroke();
+  [[50, 70, .8], [50, 16, .7], [50, 124, .7]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(X(x), Y(y), r * u, 0, Math.PI * 2); ctx.fill(); });
+  ctx.restore();
+
+  const cw = PW * .185;
+  for (let i = 0; i < N_START; i++) {
+    const [pos, x, y] = f.slots[i];
+    await drawCard(ctx, X(x), py + y * PH / 100, cw, state.slots[i], pos);
+  }
+
+  if (benchFilled) {
+    const top = HEAD + PH + 64;
+    ctx.fillStyle = '#E6F0EE'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.font = `700 34px ${UIF}`; ctx.fillText('교체 명단', PX, top);
+    const bwid = 120, gap = (PW - bwid * 7) / 6, bcy = top + 34 + bwid * 1.25 / 2;
+    for (let k = 0; k < N_BENCH; k++) {
+      await drawCard(ctx, PX + bwid / 2 + k * (bwid + gap), bcy, bwid, state.slots[N_START + k], 'SUB');
+    }
+  }
+  return c;
+}
+async function exportImage() {
+  if (!downloads) return;
+  const btn = $('#exportBtn');
+  btn.disabled = true;
+  try {
+    try {
+      await Promise.race([
+        Promise.all([`700 40px ${NUMF}`, `700 40px ${UIF}`].map(f => document.fonts.load(f, '가A1'))),
+        wait(2500),
+      ]);
+    } catch (e) { /* draw with fallback fonts */ }
+    const canvas = await drawExport();
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    if (!blob) throw { code: 'bad_request' };
+    const base = (state.teamName.trim() || 'formation').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'formation';
+    await downloads.save({ filename: `${base}.png`, data: blob });
+    toast('이미지를 저장했습니다');
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'declined') { /* viewer said no */ }
+    else if (code === 'rate_limited') toast('잠시 후 다시 시도하세요');
+    else if (code === 'unavailable' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') { btn.hidden = true; toast('이 화면에서는 이미지 저장을 쓸 수 없습니다'); }
+    else toast('이미지를 저장하지 못했습니다');
+  } finally { btn.disabled = false; }
+}
+$('#exportBtn').addEventListener('click', exportImage);
+async function connectDownloads() {
+  try {
+    const cl = window.claude;
+    if (!cl || typeof cl.use !== 'function') return;
+    const dl = await cl.use('downloads');
+    if (dl) { downloads = dl; $('#exportBtn').hidden = false; }
+  } catch (e) { /* no export */ }
+}
+
+/* ---------- Boot ---------- */
+buildFormations();
+buildSlots();
+buildSwatches();
+loadLocal();
+renderAll();
+setMode(null);
+setStatus('local');
+connect();
+connectDownloads();
+})();
+</script>
+<div style="position:fixed;right:10px;bottom:8px;font:11px/1 system-ui,-apple-system,sans-serif;color:rgba(120,130,150,.75);z-index:50;pointer-events:none;letter-spacing:.2px">제작 DYHAN</div>
+</body>
+</html>
