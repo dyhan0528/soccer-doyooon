@@ -386,20 +386,14 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   <section class="board" aria-label="선발 11명">
     <div class="pitch" id="pitch">
       <svg class="lines" viewBox="0 0 100 140" aria-hidden="true">
+        <!-- 우리 진영(반쪽 경기장): 맨 위가 하프라인 -->
         <rect x="3" y="3" width="94" height="134" rx="1"/>
-        <line x1="3" y1="70" x2="97" y2="70"/>
-        <circle cx="50" cy="70" r="10"/>
-        <circle class="dot" cx="50" cy="70" r=".8"/>
-        <rect x="22" y="3" width="56" height="20"/>
-        <rect x="36" y="3" width="28" height="7"/>
-        <circle class="dot" cx="50" cy="16" r=".7"/>
-        <path d="M44.34 23 A9 9 0 0 0 55.66 23"/>
+        <path d="M40 3 A10 10 0 0 0 60 3"/>
+        <circle class="dot" cx="50" cy="3" r=".8"/>
         <rect x="22" y="117" width="56" height="20"/>
         <rect x="36" y="130" width="28" height="7"/>
         <circle class="dot" cx="50" cy="124" r=".7"/>
         <path d="M44.34 117 A9 9 0 0 1 55.66 117"/>
-        <path d="M3 5.5 A2.5 2.5 0 0 0 5.5 3"/>
-        <path d="M94.5 3 A2.5 2.5 0 0 0 97 5.5"/>
         <path d="M5.5 137 A2.5 2.5 0 0 0 3 134.5"/>
         <path d="M97 134.5 A2.5 2.5 0 0 0 94.5 137"/>
       </svg>
@@ -1033,13 +1027,11 @@ async function drawExport() {
   const X = v => PX + v * u, Y = v => py + v * u;
   ctx.strokeStyle = 'rgba(214,255,236,.30)'; ctx.fillStyle = 'rgba(214,255,236,.30)'; ctx.lineWidth = .4 * u;
   const sr = (x, y, w, h) => ctx.strokeRect(X(x), Y(y), w * u, h * u);
-  sr(3, 3, 94, 134); sr(22, 3, 56, 20); sr(36, 3, 28, 7); sr(22, 117, 56, 20); sr(36, 130, 28, 7);
-  ctx.beginPath(); ctx.moveTo(X(3), Y(70)); ctx.lineTo(X(97), Y(70)); ctx.stroke();
-  ctx.beginPath(); ctx.arc(X(50), Y(70), 10 * u, 0, Math.PI * 2); ctx.stroke();
+  sr(3, 3, 94, 134); sr(22, 117, 56, 20); sr(36, 130, 28, 7);
+  ctx.beginPath(); ctx.arc(X(50), Y(3), 10 * u, 0, Math.PI); ctx.stroke();
   const ang = Math.atan2(7, 5.66);
-  ctx.beginPath(); ctx.arc(X(50), Y(16), 9 * u, ang, Math.PI - ang); ctx.stroke();
   ctx.beginPath(); ctx.arc(X(50), Y(124), 9 * u, Math.PI + ang, -ang); ctx.stroke();
-  [[50, 70, .8], [50, 16, .7], [50, 124, .7]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(X(x), Y(y), r * u, 0, Math.PI * 2); ctx.fill(); });
+  [[50, 3, .8], [50, 124, .7]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(X(x), Y(y), r * u, 0, Math.PI * 2); ctx.fill(); });
   ctx.restore();
 
   const cw = PW * .185;
